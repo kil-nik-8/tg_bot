@@ -6,6 +6,17 @@ from aiogram.types import BotCommand
 from core import dp, bot
 from handlers import handlers
 
+import os
+import json
+
+# Получаем переменную среды с текстом JSON и создаём файл
+creds_text = os.environ.get("GOOGLE_CREDENTIALS")
+
+if creds_text:
+    with open("credentials.json", "w") as f:
+        creds = json.loads(creds_text)
+        json.dump(creds, f)
+
 async def main() -> None:
 
     dp.include_router(handlers.router)
