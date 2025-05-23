@@ -22,7 +22,7 @@ async def main() -> None:
     dp.include_router(handlers.router)
     logging.basicConfig(level=logging.INFO)
     
-    await bot.delete_webhook(drop_pending_updates=False)
+    await bot.delete_webhook(drop_pending_updates=True)
 
     await bot.set_my_commands(commands=[
         BotCommand(
