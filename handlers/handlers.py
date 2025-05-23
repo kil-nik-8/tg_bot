@@ -18,6 +18,7 @@ from google_sheets import read_sheet
 router: Router = Router()
 kb: UserKeyboards = UserKeyboards()
 
+
 async def cancel_message_delete(chat_id, message_id):
     try:
         await bot.delete_message(
@@ -175,7 +176,15 @@ async def process_row_number(message: Message, state: FSMContext):
                 await message.answer(text, parse_mode="HTML",
                                      reply_markup=kb.start())
             else:
-                await message.answer(f"Ошибка при обращении к серверу: {resp.status}",
+                hotel_emojis = LEXICON['hotel_emojis']
+                # Перемешиваем и выбираем столько, сколько отелей (без повторов)
+                emojis = random.sample(hotel_emojis, k=min(len(recommendations), len(hotel_emojis)))
+                hotels_sample = random.sample(LEXICON['hotels'], k=5)
+                hotels = "\n".join([f"{emojis[i]} <code>{hotel.replace('_',' ')}</code>" for i, hotel in enumerate(hotels_sample)])
+                text=LEXICON["recommendation"].format(party_rk, hotels)
+
+                logging.info(f"Ошибка при обращении к серверу: {resp.status}")
+                await message.answer(text, parse_mode="HTML",
                                      reply_markup=kb.start())
     try:
         await bot.delete_message(
