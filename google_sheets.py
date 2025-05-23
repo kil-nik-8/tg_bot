@@ -82,13 +82,13 @@ def read_sheet(row_num: int, major_dimension: str = "COLUMNS"):
     service = get_service()
     column_names = service.spreadsheets().values().get(
         spreadsheetId=SPREADSHEET_ID,
-        range="A1:Q1",
+        range="A1:AO1",
         majorDimension=major_dimension
     ).execute()
     column_names = [item[0] for item in column_names["values"]]
     print(column_names)
 
-    range_ = f"A{row_num}:Q{row_num}"
+    range_ = f"A{row_num}:AO{row_num}"
     values = service.spreadsheets().values().get(
         spreadsheetId=SPREADSHEET_ID,
         range=range_,
