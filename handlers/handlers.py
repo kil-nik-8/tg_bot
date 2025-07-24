@@ -5,7 +5,7 @@ from aiogram.filters import StateFilter, CommandStart, Command, or_f
 from aiogram.fsm.context import FSMContext
 
 from core import bot
-from core.config import SERVER_URL
+from core.config import SERVER_URL, allowed_users
 
 import aiohttp
 import random
@@ -14,6 +14,8 @@ from keyboards import UserKeyboards
 from lexicon import LEXICON, buttons
 from states import ClientState
 from google_sheets import read_sheet
+
+from filters.filters import IsAllowedUser, IsNotAllowedUser
 
 router: Router = Router()
 kb: UserKeyboards = UserKeyboards()
@@ -27,6 +29,38 @@ async def cancel_message_delete(chat_id, message_id):
         )
     except Exception as e:
         logging.info(f"Ошибка при удалении сообщения: {e}")
+
+
+@router.message(Command('id'))
+async def get_user_id(message: Message):
+    logging.info(f"Получен запрос user_id от {message.from_user.id}")
+    await message.answer(f"Ваш user_id: <code>{message.from_user.id}</code>", 
+                         parse_mode="HTML")
+
+
+@router.message(or_f(F.text == buttons['help'], Command('help')))
+async def help_hadler(message: Message, state: FSMContext):
+    await message.delete()
+    data = await state.get_data()
+
+    if data.get('help_message_id'):
+        try:
+            await bot.delete_message(
+                chat_id=message.chat.id,
+                message_id=data['help_message_id']
+            )
+        except Exception as e:
+            logging.info(f"Ошибка при удалении сообщения: {e}")
+
+    help_message = await message.answer(LEXICON['help'])
+    await state.update_data(help_message_id=help_message.message_id)
+    
+
+@router.message(IsNotAllowedUser())
+async def not_allowed_user(message: Message):
+    await message.delete()
+    await message.answer("У вас нет доступа к этому боту.")
+    return
 
 
 @router.message(CommandStart())
@@ -52,24 +86,6 @@ async def start(message: Message, state: FSMContext):
     command_text = message.text.split(" ", 1)[1:]
     if command_text:
         pass
-
-
-@router.message(or_f(F.text == buttons['help'], Command('help')))
-async def help_hadler(message: Message, state: FSMContext):
-    await message.delete()
-    data = await state.get_data()
-
-    if data.get('help_message_id'):
-        try:
-            await bot.delete_message(
-                chat_id=message.chat.id,
-                message_id=data['help_message_id']
-            )
-        except Exception as e:
-            logging.info(f"Ошибка при удалении сообщения: {e}")
-
-    help_message = await message.answer(LEXICON['help'])
-    await state.update_data(help_message_id=help_message.message_id)
 
 
 @router.message(F.text == buttons['begin_work'], ClientState.default_state)

@@ -10,13 +10,16 @@ import os
 import json
 
 # Получаем переменную среды с текстом JSON и создаём файл
-creds_text = os.environ.get("GOOGLE_CREDENTIALS")
-
-if creds_text:
-    with open("credentials.json", "w") as f:
+if os.path.exists("credentials.json"):
+    with open("credentials.json", "r") as f:
+        creds = json.load(f)
+else:
+    creds_text = os.environ.get("GOOGLE_CREDENTIALS")
+    if creds_text:
         creds = json.loads(creds_text)
-        json.dump(creds, f)
-
+        with open("credentials.json", "w") as f:
+            json.dump(creds, f)
+            
 async def main() -> None:
 
     dp.include_router(handlers.router)
